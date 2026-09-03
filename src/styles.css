@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-background: #0d0b10;
+  --color-foreground: #f0ebe5;
+  --color-card: #1a1320;
+  --color-card-foreground: #f0ebe5;
+  --color-primary: #c41e3a;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #2d1f2e;
+  --color-secondary-foreground: #e8d5c4;
+  --color-muted: #1f1624;
+  --color-muted-foreground: #9a8a9e;
+  --color-accent: #d4a843;
+  --color-accent-foreground: #0d0b10;
+  --color-border: #2a1f2d;
+  --color-ring: #c41e3a;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+
+  --radius: 0.875rem;
+}
+
+html,
+body,
+app-root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background-color: #0d0b10;
+  color: #f0ebe5;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: #2d1f2e transparent;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+app-root {
+  display: block;
+  min-height: 100%;
+}
