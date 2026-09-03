@@ -1,0 +1,180 @@
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { Book, ReadingStatus, books, userProfile } from '../data/books';
+import { BookCardGridComponent } from '../components/book-card.component';
+import { SpiceRatingComponent } from '../components/spice-rating.component';
+import { ReadingListService } from '../services/reading-list.service';
+
+@Component({
+  selector: 'app-profile',
+  standalone: true,
+  imports: [BookCardGridComponent, SpiceRatingComponent],
+  template: `
+    <div class="min-h-screen">
+      <div class="relative pt-8 pb-16 px-6" style="background: linear-gradient(180deg, rgba(196,30,58,0.08) 0%, transparent 100%)">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div class="relative">
+              <img [src]="userProfile.avatar" [alt]="userProfile.name" class="w-24 h-24 rounded-full object-cover border-4 border-primary/30" />
+              <div class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                  <path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.3 15.97C5.45 16.57 5.73 17.17 6.08 17.7C7.08 19.09 8.58 20.08 10.23 20.42C11.98 20.8 13.86 20.63 15.44 19.72C17.18 18.71 18.29 16.9 18.44 14.9C18.5 14 18.5 13.14 17.66 11.2Z" />
+                </svg>
+              </div>
+            </div>
+            <div class="text-center sm:text-left">
+              <h1 class="font-display text-2xl font-bold text-foreground">{{ userProfile.name }}</h1>
+              <p class="text-muted-foreground text-sm mb-3">{{ userProfile.username }}</p>
+              <button class="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-white/5 transition-colors">Editar perfil</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-4xl mx-auto px-6 -mt-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          <div class="p-4 rounded-xl bg-card border border-border text-center">
+            <p class="font-display text-3xl font-black text-foreground mb-0.5">{{ totalRead }}</p>
+            <p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Lidos</p>
+          </div>
+          <div class="p-4 rounded-xl bg-card border border-border text-center">
+            <p class="font-display text-3xl font-black text-foreground mb-0.5">{{ avgSpice }}</p>
+            <p class="text-xs text-muted-foreground mb-1">/ 5.0</p>
+            <p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Spice médio</p>
+          </div>
+          <div class="p-4 rounded-xl bg-card border border-border text-center">
+            <p class="font-display text-3xl font-black text-foreground mb-0.5">E2L</p>
+            <p class="text-xs text-muted-foreground mb-1">Enemies to Lovers</p>
+            <p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tropo favorito</p>
+          </div>
+          <div class="p-4 rounded-xl bg-card border border-border text-center">
+            <p class="font-display text-3xl font-black text-foreground mb-0.5">{{ userProfile.avgRating.toFixed(1) }}</p>
+            <p class="text-xs text-muted-foreground mb-1">/ 5.0</p>
+            <p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nota média</p>
+          </div>
+        </div>
+
+        <section class="mb-8 p-5 rounded-2xl bg-card border border-border">
+          <h2 class="font-display text-lg font-bold text-foreground mb-4">Distribuição de Spice</h2>
+          <div class="space-y-2.5">
+            @for (level of spiceLevels; track level) {
+              <div class="flex items-center gap-3">
+                <app-spice-rating [level]="level" size="sm" />
+                <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-primary transition-all duration-700" [style.width.%]="spicePercent(level)"></div>
+                </div>
+                <span class="text-xs text-muted-foreground w-8 text-right">{{ spiceCount(level) }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <div class="p-6 rounded-2xl relative overflow-hidden" style="background: linear-gradient(135deg, #1a0a12, #2d0f1e)">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 80% 50%, #c41e3a, transparent 60%)"></div>
+            <div class="relative">
+              <div class="flex items-center gap-2 mb-3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#d4a843">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z" />
+                </svg>
+                <p class="text-xs font-semibold uppercase tracking-wider text-accent">Seu perfil literário</p>
+              </div>
+              <p class="text-foreground leading-relaxed">{{ userProfile.literaryProfile }}</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-16">
+          <div class="flex gap-1 mb-6 p-1 bg-muted rounded-xl w-fit">
+            @for (tab of tabs; track tab.id) {
+              <button (click)="activeTab = tab.id" [class]="'px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ' + (activeTab === tab.id ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')">
+                {{ tab.label }}
+                <span [class]="'ml-2 text-xs ' + (activeTab === tab.id ? 'text-primary' : 'text-muted-foreground')">{{ tabBooks[tab.id].length }}</span>
+              </button>
+            }
+          </div>
+
+          @if (activeBooks.length === 0) {
+            <div class="text-center py-16">
+              <p class="font-display text-xl text-foreground mb-2">Lista vazia</p>
+              <p class="text-muted-foreground text-sm mb-4">{{ emptyMessage }}</p>
+              <button (click)="navigate('/descobrir')" class="text-primary font-medium hover:underline text-sm">Descobrir livros</button>
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              @for (book of activeBooks; track book.id) {
+                <app-book-card-grid [book]="book" />
+              }
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  `,
+})
+export class ProfileComponent {
+  private readonly router = inject(Router);
+  readonly readingListService = inject(ReadingListService);
+  readonly userProfile = userProfile;
+  readonly spiceLevels = [5, 4, 3, 2, 1];
+  readonly tabs: { id: ReadingStatus; label: string }[] = [
+    { id: 'read', label: 'Lidos' },
+    { id: 'reading', label: 'Lendo' },
+    { id: 'want-to-read', label: 'Quero ler' },
+  ];
+
+  activeTab: ReadingStatus = 'read';
+
+  get readBooks(): Book[] { return this.listByStatus('read'); }
+  get readingBooks(): Book[] { return this.listByStatus('reading'); }
+  get wantToReadBooks(): Book[] { return this.listByStatus('want-to-read'); }
+
+  get avgSpice(): string {
+    return this.readBooks.length > 0
+      ? (this.readBooks.reduce((sum, book) => sum + book.spice, 0) / this.readBooks.length).toFixed(1)
+      : userProfile.avgSpice.toFixed(1);
+  }
+
+  get totalRead(): number {
+    return this.readBooks.length || userProfile.booksRead;
+  }
+
+  get tabBooks(): Record<ReadingStatus, Book[]> {
+    return {
+      read: this.readBooks,
+      reading: this.readingBooks,
+      'want-to-read': this.wantToReadBooks,
+    };
+  }
+
+  get activeBooks(): Book[] {
+    return this.tabBooks[this.activeTab];
+  }
+
+  get emptyMessage(): string {
+    if (this.activeTab === 'want-to-read') return 'Adicione livros que você quer ler';
+    if (this.activeTab === 'reading') return 'Você não tem livros em andamento';
+    return 'Nenhum livro lido ainda';
+  }
+
+  spiceCount(level: number): number {
+    return this.readBooks.filter((book) => book.spice === level).length;
+  }
+
+  spicePercent(level: number): number {
+    const read = this.readBooks;
+    if (read.length === 0) return 0;
+    return (read.filter((book) => book.spice === level).length / read.length) * 100;
+  }
+
+  navigate(path: string): void {
+    void this.router.navigateByUrl(path);
+  }
+
+  private listByStatus(status: ReadingStatus): Book[] {
+    return Object.entries(this.readingListService.readingList())
+      .filter(([, currentStatus]) => currentStatus === status)
+      .map(([id]) => books.find((book) => book.id === id))
+      .filter((book): book is Book => Boolean(book));
+  }
+}
