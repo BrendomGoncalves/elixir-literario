@@ -12,6 +12,7 @@ export const routes: Routes = [
   { path: "descobrir", component: SearchComponent },
   { path: "livro/:id", component: BookPageComponent },
   { path: "perfil", component: ProfileComponent },
+  // { path: "perfil/:id", component:  },
   { path: "rankings", component: RankingsComponent },
   { path: "**", redirectTo: "" },
 ];
