@@ -1,0 +1,178 @@
+@if (book; as currentBook) {
+  <div class="min-h-screen">
+    <div class="relative h-72 overflow-hidden">
+      <img [src]="currentBook.cover" alt="" class="w-full h-full object-cover scale-110 blur-2xl opacity-30" aria-hidden="true" />
+      <div class="absolute inset-0 bg-gradient-to-b from-background/30 via-background/60 to-background"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6 -mt-52 relative">
+      <button (click)="navigate('/')" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar
+      </button>
+
+      <div class="flex flex-col md:flex-row gap-8 mb-10">
+        <div class="flex-shrink-0">
+          <div class="w-44 md:w-52 rounded-2xl overflow-hidden shadow-2xl shadow-black/60 bg-muted aspect-[2/3]">
+            <img [src]="currentBook.cover" [alt]="currentBook.title" class="w-full h-full object-cover" />
+          </div>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap gap-2 mb-4">
+            @for (genre of currentBook.genre; track genre) {
+              <span class="px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium">{{ genre }}</span>
+            }
+            @if (currentBook.isSeries) {
+              <span class="px-2.5 py-1 rounded-full bg-accent/20 text-accent text-xs font-medium">{{ currentBook.seriesName }} #{{ currentBook.seriesBook }}</span>
+            }
+          </div>
+
+          <h1 class="font-display text-3xl md:text-4xl font-black text-foreground leading-tight mb-2">{{ currentBook.title }}</h1>
+          <p class="text-lg text-muted-foreground mb-4">{{ currentBook.author }}</p>
+
+          <div class="flex items-center gap-4 mb-5">
+            <div class="flex items-center gap-1.5">
+              <span class="text-accent text-xl">★</span>
+              <span class="text-xl font-bold text-foreground">{{ currentBook.rating.toFixed(1) }}</span>
+              <span class="text-sm text-muted-foreground">({{ (currentBook.ratingCount / 1000).toFixed(1) }}k avaliações)</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-4 mb-6 p-4 rounded-xl bg-card border border-border">
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Spice</span>
+              <app-spice-rating [level]="currentBook.spice" size="md" />
+              <span class="text-xs text-muted-foreground">{{ currentBook.spice }}/5</span>
+            </div>
+            <div class="w-px bg-border"></div>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dark</span>
+              <app-dark-rating [level]="currentBook.dark" size="md" />
+              <span class="text-xs text-muted-foreground">{{ currentBook.dark }}/5</span>
+            </div>
+            <div class="w-px bg-border"></div>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Final</span>
+              <span [class]="'text-sm font-semibold ' + (currentBook.happilyEverAfter ? 'text-green-400' : 'text-red-400')">
+                {{ currentBook.happilyEverAfter ? 'HEA' : 'Sem HEA' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-6">
+            @for (status of statuses; track status) {
+              <button (click)="toggleStatus(status)" [class]="statusButtonClass(status)">{{ statusLabels[status] }}</button>
+            }
+          </div>
+
+          <a [href]="currentBook.affiliateLink" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            Comprar / Ler agora
+          </a>
+        </div>
+      </div>
+
+      <section class="mb-8">
+        <h2 class="font-display text-xl font-bold text-foreground mb-4">Tropos</h2>
+        <div class="flex flex-wrap gap-2">
+          @for (trope of currentBook.tropes; track trope) {
+            <span class="px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium">{{ tropeLabels[trope] }}</span>
+          }
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="font-display text-xl font-bold text-foreground mb-4">Sinopse</h2>
+        <p class="text-muted-foreground leading-relaxed text-[15px]">{{ currentBook.synopsis }}</p>
+      </section>
+
+      @if (currentBook.contentWarnings.length > 0) {
+        <section class="mb-8">
+          <div class="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5">
+            <div class="flex items-center gap-2 mb-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4a843" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <span class="text-sm font-bold text-amber-400">Este livro contém</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              @for (warning of currentBook.contentWarnings; track warning) {
+                <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-300/80 text-sm">{{ warning }}</span>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <section class="mb-8">
+        <h2 class="font-display text-xl font-bold text-foreground mb-5">Avaliações detalhadas</h2>
+        <div class="p-5 rounded-xl bg-card border border-border space-y-4">
+          @for (rating of detailedRatings; track rating.label) {
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-muted-foreground w-28 text-right">{{ rating.label }}</span>
+              <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-accent transition-all duration-700" [style.width.%]="(rating.value / 5) * 100"></div>
+              </div>
+              <span class="text-sm font-semibold text-foreground w-8">{{ rating.value.toFixed(1) }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (similarBooks.length > 0) {
+        <section class="mb-8">
+          <h2 class="font-display text-xl font-bold text-foreground mb-5">Se você gostou desse, leia</h2>
+          <div class="flex gap-5 overflow-x-auto pb-2 -mx-1 px-1">
+            @for (similar of similarBooks; track similar.id) {
+              <app-book-card [book]="similar" size="sm" />
+            }
+          </div>
+        </section>
+      }
+
+      <section class="mb-16">
+        <h2 class="font-display text-xl font-bold text-foreground mb-5">
+          Discussões <span class="text-muted-foreground font-normal text-base">({{ localComments.length }})</span>
+        </h2>
+
+        <div class="flex gap-3 mb-6">
+          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop" alt="Você" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+          <div class="flex-1">
+            <textarea [(ngModel)]="newComment" placeholder="O que você achou desse livro?" rows="2" class="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 resize-none text-sm transition-colors"></textarea>
+            @if (newComment.trim()) {
+              <button (click)="submitComment()" class="mt-2 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors">Publicar</button>
+            }
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          @for (comment of localComments; track comment.id) {
+            <div class="flex gap-3">
+              <img [src]="comment.avatar" [alt]="comment.user" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+              <div class="flex-1">
+                <div class="flex items-baseline gap-2 mb-1">
+                  <span class="text-sm font-semibold text-foreground">{{ comment.user }}</span>
+                  <span class="text-xs text-muted-foreground">{{ comment.date }}</span>
+                </div>
+                <p class="text-sm text-muted-foreground leading-relaxed">{{ comment.text }}</p>
+                <button class="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                  </svg>
+                  {{ comment.likes > 0 ? comment.likes : '' }} Curtir
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+} @else {
+  <div class="min-h-screen flex items-center justify-center"><p class="text-muted-foreground">Livro não encontrado.</p></div>
+}
