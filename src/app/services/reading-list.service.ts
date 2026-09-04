@@ -1,16 +1,29 @@
-import { Injectable, signal } from '@angular/core';
-import { ReadingStatus } from '../data/books';
+import { HttpClient } from "@angular/common/http";
+import { Injectable, inject, signal } from "@angular/core";
+import { catchError, map, of } from "rxjs";
+import { ReadingStatus } from "../types/reading-status";
+import { ReadingListRecord } from "../interfaces/reading-list-record";
+import { environment } from "../../environments/environment.development";
 
-const initialReadingList: Record<string, ReadingStatus> = {
-  '1': 'read', '2': 'read', '3': 'read', '5': 'read', '6': 'read',
-  '7': 'read', '8': 'read', '10': 'read', '11': 'read', '14': 'read',
-  '4': 'reading', '13': 'reading',
-  '9': 'want-to-read', '12': 'want-to-read', '15': 'want-to-read',
-};
-
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ReadingListService {
-  readonly readingList = signal<Record<string, ReadingStatus>>({ ...initialReadingList });
+  private readonly http = inject(HttpClient);
+  readonly readingList = signal<Record<string, ReadingStatus>>({});
+
+  constructor() {
+    this.http
+      .get<ReadingListRecord[]>(`${environment.apiUrl}/readingList`)
+      .pipe(
+        map((records) =>
+          records.reduce<Record<string, ReadingStatus>>((list, record) => {
+            list[record.bookId] = record.status;
+            return list;
+          }, {}),
+        ),
+        catchError(() => of({})),
+      )
+      .subscribe((list) => this.readingList.set(list));
+  }
 
   update(bookId: string, status: ReadingStatus | null): void {
     this.readingList.update((current) => {
@@ -19,5 +32,22 @@ export class ReadingListService {
       else next[bookId] = status;
       return next;
     });
+
+    if (status === null) {
+      this.http
+        .delete(`${environment.apiUrl}/readingList/${bookId}`)
+        .pipe(catchError(() => of(null)))
+        .subscribe();
+      return;
+    }
+
+    this.http
+      .put<ReadingListRecord>(`${environment.apiUrl}/readingList/${bookId}`, {
+        id: bookId,
+        bookId,
+        status,
+      })
+      .pipe(catchError(() => of(null)))
+      .subscribe();
   }
 }

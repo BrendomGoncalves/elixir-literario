@@ -1,15 +1,11 @@
 import { Component, inject } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { BookCardGridComponent } from "../../components/book-card.component";
-import {
-  Book,
-  Mood,
-  ReadingStatus,
-  Trope,
-  books,
-  tropeLabels,
-} from "../../data/books";
+import { BookCardGridComponent } from "../../components/book-card/book-card.component";
+import { Book } from "../../interfaces/book";
+import { Mood } from "../../types/mood";
+import { Trope } from "../../types/trope";
+import { BookDataService } from "../../services/book-data.service";
 import { ReadingListService } from "../../services/reading-list.service";
 
 @Component({
@@ -20,6 +16,7 @@ import { ReadingListService } from "../../services/reading-list.service";
 })
 export class SearchComponent {
   readonly readingList = inject(ReadingListService);
+  readonly data = inject(BookDataService);
 
   query = "";
   spiceMin = 1;
@@ -33,7 +30,9 @@ export class SearchComponent {
 
   readonly levels = [1, 2, 3, 4, 5];
   readonly ratings = [0, 3.5, 4, 4.5];
-  readonly tropeLabels = tropeLabels;
+  get tropeLabels() {
+    return this.data.tropeLabels();
+  }
   readonly allTropes: Trope[] = [
     "enemies-to-lovers",
     "forbidden-love",
@@ -64,7 +63,7 @@ export class SearchComponent {
   ];
 
   get filtered(): Book[] {
-    const result = books.filter((book) => {
+    const result = this.data.books().filter((book) => {
       if (this.query) {
         const q = this.query.toLowerCase();
         if (

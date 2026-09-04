@@ -1,0 +1,1 @@
+export type RankingTab = "hot" | "popular" | "dark" | "booktok";

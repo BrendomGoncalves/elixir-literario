@@ -1,0 +1,1 @@
+export type Mood = 'dark' | 'light' | 'mixed';
