@@ -1,8 +1,10 @@
 import { Component, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Book, ReadingStatus, books, userProfile } from "../../data/books";
-import { BookCardGridComponent } from "../../components/book-card.component";
-import { SpiceRatingComponent } from "../../components/spice-rating.component";
+import { Book } from "../../interfaces/book";
+import { ReadingStatus } from "../../types/reading-status";
+import { BookDataService } from "../../services/book-data.service";
+import { BookCardGridComponent } from "../../components/book-card/book-card.component";
+import { SpiceRatingComponent } from "../../components/spice-rating/spice-rating.component";
 import { ReadingListService } from "../../services/reading-list.service";
 
 @Component({
@@ -14,7 +16,7 @@ import { ReadingListService } from "../../services/reading-list.service";
 export class ProfileComponent {
   private readonly router = inject(Router);
   readonly readingListService = inject(ReadingListService);
-  readonly userProfile = userProfile;
+  readonly data = inject(BookDataService);
   readonly spiceLevels = [5, 4, 3, 2, 1];
   readonly tabs: { id: ReadingStatus; label: string }[] = [
     { id: "read", label: "Lidos" },
@@ -23,6 +25,10 @@ export class ProfileComponent {
   ];
 
   activeTab: ReadingStatus = "read";
+
+  get userProfile() {
+    return this.data.userProfile();
+  }
 
   get readBooks(): Book[] {
     return this.listByStatus("read");
@@ -40,11 +46,11 @@ export class ProfileComponent {
           this.readBooks.reduce((sum, book) => sum + book.spice, 0) /
           this.readBooks.length
         ).toFixed(1)
-      : userProfile.avgSpice.toFixed(1);
+      : (this.userProfile?.avgSpice ?? 0).toFixed(1);
   }
 
   get totalRead(): number {
-    return this.readBooks.length || userProfile.booksRead;
+    return this.readBooks.length || this.userProfile?.booksRead || 0;
   }
 
   get tabBooks(): Record<ReadingStatus, Book[]> {
@@ -85,7 +91,7 @@ export class ProfileComponent {
   private listByStatus(status: ReadingStatus): Book[] {
     return Object.entries(this.readingListService.readingList())
       .filter(([, currentStatus]) => currentStatus === status)
-      .map(([id]) => books.find((book) => book.id === id))
+      .map(([id]) => this.data.books().find((book) => book.id === id))
       .filter((book): book is Book => Boolean(book));
   }
 }

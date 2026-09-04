@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { books } from "../../data/books";
-import { BookSectionComponent } from "../../components/book-section.component";
+import { Book } from "../../interfaces/book";
+import { BookDataService } from "../../services/book-data.service";
+import { BookSectionComponent } from "../../components/book-section/book-section.component";
 
 @Component({
   selector: "app-home",
@@ -11,10 +12,15 @@ import { BookSectionComponent } from "../../components/book-section.component";
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly data = inject(BookDataService);
   private intervalId?: number;
 
-  readonly books = books;
-  readonly heroBooks = books.slice(0, 6);
+  get books(): Book[] {
+    return this.data.books();
+  }
+  get heroBooks(): Book[] {
+    return this.books.slice(0, 6);
+  }
   readonly heroTexts = [
     "hot",
     "quente",
@@ -27,19 +33,27 @@ export class HomeComponent implements OnInit, OnDestroy {
   ];
   heroTextIndex = 0;
 
-  readonly trending = books
-    .filter((book) => book.trendingThisWeek)
-    .map((book) => book.id);
-  readonly darkRomance = books
-    .filter((book) => book.tropes.includes("dark-romance") || book.dark >= 4)
-    .map((book) => book.id);
-  readonly enemiesLovers = books
-    .filter((book) => book.tropes.includes("enemies-to-lovers"))
-    .map((book) => book.id)
-    .slice(0, 6);
-  readonly booktok = books
-    .filter((book) => book.viralOnBooktok)
-    .map((book) => book.id);
+  get trending(): string[] {
+    return this.books
+      .filter((book) => book.trendingThisWeek)
+      .map((book) => book.id);
+  }
+  get darkRomance(): string[] {
+    return this.books
+      .filter((book) => book.tropes.includes("dark-romance") || book.dark >= 4)
+      .map((book) => book.id);
+  }
+  get enemiesLovers(): string[] {
+    return this.books
+      .filter((book) => book.tropes.includes("enemies-to-lovers"))
+      .map((book) => book.id)
+      .slice(0, 6);
+  }
+  get booktok(): string[] {
+    return this.books
+      .filter((book) => book.viralOnBooktok)
+      .map((book) => book.id);
+  }
 
   readonly genres = [
     "Dark Romance",

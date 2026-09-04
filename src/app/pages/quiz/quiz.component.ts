@@ -1,15 +1,11 @@
 import { Component, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Book, Mood, Trope, books, tropeLabels } from "../../data/books";
-import { SpiceRatingComponent } from "../../components/spice-rating.component";
-
-interface Answers {
-  spice: number | null;
-  tropes: Trope[];
-  mood: Mood | null;
-  hea: boolean | null;
-  series: "single" | "series" | "any" | null;
-}
+import { Book } from "../../interfaces/book";
+import { Mood } from "../../types/mood";
+import { Trope } from "../../types/trope";
+import { BookDataService } from "../../services/book-data.service";
+import { SpiceRatingComponent } from "../../components/spice-rating/spice-rating.component";
+import { Answers } from "../../interfaces/answers";
 
 @Component({
   selector: "app-quiz",
@@ -19,11 +15,14 @@ interface Answers {
 })
 export class QuizComponent {
   private readonly router = inject(Router);
+  readonly data = inject(BookDataService);
 
   step = 0;
   showResults = false;
   readonly totalSteps = 5;
-  readonly tropeLabels = tropeLabels;
+  get tropeLabels() {
+    return this.data.tropeLabels();
+  }
   readonly progressColors = [
     "bg-primary",
     "bg-primary",
@@ -139,7 +138,8 @@ export class QuizComponent {
   }
 
   get results(): { book: Book; match: number }[] {
-    return books
+    return this.data
+      .books()
       .map((book) => ({ book, match: this.computeMatch(book) }))
       .sort((a, b) => b.match - a.match)
       .slice(0, 5);

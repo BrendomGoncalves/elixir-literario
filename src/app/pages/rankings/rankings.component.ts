@@ -1,9 +1,9 @@
 import { Component, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Book, books } from "../../data/books";
-import { SpiceRatingComponent } from "../../components/spice-rating.component";
-
-type RankingTab = "hot" | "popular" | "dark" | "booktok";
+import { Book } from "../../interfaces/book";
+import { BookDataService } from "../../services/book-data.service";
+import { SpiceRatingComponent } from "../../components/spice-rating/spice-rating.component";
+import { RankingTab } from "../../types/ranking-tab";
 
 @Component({
   selector: "app-rankings",
@@ -13,6 +13,7 @@ type RankingTab = "hot" | "popular" | "dark" | "booktok";
 })
 export class RankingsComponent {
   private readonly router = inject(Router);
+  private readonly data = inject(BookDataService);
   activeTab: RankingTab = "hot";
 
   readonly tabs: { id: RankingTab; label: string }[] = [
@@ -36,18 +37,23 @@ export class RankingsComponent {
     "bg-amber-600/10 border-amber-600/30",
   ];
 
-  private readonly rankData: Record<RankingTab, Book[]> = {
-    hot: [...books]
-      .filter((book) => book.trendingThisWeek)
-      .sort((a, b) => b.ratingCount - a.ratingCount),
-    popular: [...books].sort((a, b) => b.ratingCount - a.ratingCount),
-    dark: [...books]
-      .filter((book) => book.dark >= 3 || book.tropes.includes("dark-romance"))
-      .sort((a, b) => b.ratingCount - a.ratingCount),
-    booktok: [...books]
-      .filter((book) => book.viralOnBooktok)
-      .sort((a, b) => b.ratingCount - a.ratingCount),
-  };
+  private get rankData(): Record<RankingTab, Book[]> {
+    const books = this.data.books();
+    return {
+      hot: [...books]
+        .filter((book) => book.trendingThisWeek)
+        .sort((a, b) => b.ratingCount - a.ratingCount),
+      popular: [...books].sort((a, b) => b.ratingCount - a.ratingCount),
+      dark: [...books]
+        .filter(
+          (book) => book.dark >= 3 || book.tropes.includes("dark-romance"),
+        )
+        .sort((a, b) => b.ratingCount - a.ratingCount),
+      booktok: [...books]
+        .filter((book) => book.viralOnBooktok)
+        .sort((a, b) => b.ratingCount - a.ratingCount),
+    };
+  }
 
   get list(): Book[] {
     return this.rankData[this.activeTab];
