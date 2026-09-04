@@ -1,0 +1,49 @@
+<button
+  (click)="openBook()"
+  class="group text-left shrink-0"
+  [class.w-32]="size === 'sm'"
+  [class.w-44]="size !== 'sm'"
+>
+  <div class="relative overflow-hidden rounded-xl bg-muted">
+    <img
+      [src]="book.cover"
+      [alt]="book.title"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    />
+    @if (rank) {
+      <div
+        class="absolute top-2 left-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center"
+      >
+        <span class="text-xs font-bold text-accent">#{{ rank }}</span>
+      </div>
+    }
+    @if (book.viralOnBooktok) {
+      <div
+        class="absolute top-2 right-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-primary text-primary-foreground"
+      >
+        TikTok
+      </div>
+    }
+    <div
+      class="absolute bottom-0 left-0 right-0 p-2.5 from-black/90 via-black/40 to-transparent"
+    >
+      <app-spice-rating [level]="book.spice" size="sm" />
+    </div>
+  </div>
+  <div class="mt-2.5 space-y-0.5">
+    <p class="font-semibold text-sm leading-snug line-clamp-2 text-foreground">
+      {{ book.title }}
+    </p>
+    <p class="text-xs text-muted-foreground">{{ book.author }}</p>
+    <div class="flex items-center gap-1 pt-0.5">
+      <span class="text-accent text-xs">★</span>
+      <span class="text-xs text-muted-foreground">{{
+        book.rating.toFixed(1)
+      }}</span>
+      <span class="text-xs text-muted-foreground/50">·</span>
+      <span class="text-xs text-muted-foreground"
+        >{{ (book.ratingCount / 1000).toFixed(0) }}k</span
+      >
+    </div>
+  </div>
+</button>
