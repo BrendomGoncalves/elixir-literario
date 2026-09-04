@@ -3,3 +3,5 @@
 /.angular
 .DS_Store
 npm-debug.log*
+src/environments/environment.development.ts
+src/environments/environment.ts
